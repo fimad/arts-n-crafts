@@ -3,10 +3,12 @@ use strict;
 use Getopt::Long;
 
 my $_SQUARE = 0; # 0 is don't output as square
+my $_AUTO_SQUARE = 0; # should we find the smallest fitting square?
 my $_TEXT = ""; # the text to encode
 
 GetOptions(
     "square=i" => \$_SQUARE
+	,	"auto-square" => \$_AUTO_SQUARE
   , "text=s" => \$_TEXT
 );
 
@@ -43,6 +45,7 @@ sub getDoubleWord{
     $_ENC_TABLE{$key} = getDoubleWord($i);
     $i ++;
   }
+	$_ENC_TABLE{" "} = getDoubleWord(0xFE);
   $_ENC_TABLE{"null"} = getDoubleWord(-1); # we are dealing with 3 bit double words and null is 111111
 }
 
@@ -71,6 +74,14 @@ sub flatten{
 
 my @chars = map(lc, split('', $_TEXT)); #string -> [lower case chars]
 my @encoding = map {encode($_)} @chars; #encode each element of $chars
+
+#handle auto square
+if( $_AUTO_SQUARE ){
+	$_SQUARE = 1;
+	while( $_SQUARE*$_SQUARE < 2*@encoding ){
+		$_SQUARE++;
+	}
+}
 
 # just print serially by default
 if( $_SQUARE == 0 ){
